@@ -5,13 +5,15 @@ import datetime
 
 from django.db import models
 from django.utils import timezone
+from django.test import TestCase
 
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
 
     def was_published_recently(self):
-        return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
+        now = timezone.now()
+        return now - datetime.timedelta(days=1) <= self.pub_date <= now
 
     def get_choices(self):
         """Returns a list of choice objects associated with this question."""
@@ -19,13 +21,19 @@ class Question(models.Model):
 
     def get_leading_choice(self):
         """Returns the choice object with the most votes."""
-        pass  # Requires implementation!
+        MAX = 0
+        leader = ''
+        for i in self.get_choices():        
+            if i.votes > MAX:
+                MAX = i.votes
+                leader = i
+        return leader
 
     def get_leading_choice_pct(self):
         """Returns the percentage of votes for the leading choice."""
         total_votes = 1.0
         for choice in self.get_choices():
-            total_votes += votes
+            total_votes += choice.votes
         
         leader = self.get_leading_choice()
         return leader.votes / total_votes
@@ -39,4 +47,5 @@ class Choice(models.Model):
     votes = models.IntegerField(default=0)
 
     def __str__(self):
+
         return self.choice_text
